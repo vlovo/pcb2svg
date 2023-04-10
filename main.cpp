@@ -37,10 +37,10 @@ Symbols SymbolList;
 int DrawSymbol(const std::smatch &param)
 {
      
-    auto x = inchtomm * toFloat(param[1].str());
-    auto y = inchtomm * toFloat(param[2].str());
+    auto x = inchtomm * toDouble(param[1].str());
+    auto y = inchtomm * toDouble(param[2].str());
 
-    auto symbol = SymbolList[toNumber<size_t>(param[3].str())];
+    auto symbol = SymbolList[toInt(param[3].str())];
 
     double penWidth = 0.05;
 
@@ -100,13 +100,13 @@ int DrawLine(const std::smatch &param)
 
     double penWidth = LineWidth(toNumber<int>(param[5].str()));
 
-    auto x1 = inchtomm * toNumber<double>(param[1].str());
-    auto y1 = inchtomm * toNumber<double>(param[2].str());
+    auto x1 = inchtomm * toDouble(param[1].str());
+    auto y1 = inchtomm * toDouble(param[2].str());
 
     box.bounds(x1, y1);
 
-    auto x2 = inchtomm * toNumber<double>(param[3].str());
-    auto y2 = inchtomm * toNumber<double>(param[4].str());
+    auto x2 = inchtomm * toDouble(param[3].str());
+    auto y2 = inchtomm * toDouble(param[4].str());
     box.bounds(x2, y2);
 
     svg::Line line(svg::Point(x1, y1), svg::Point(x2, y2), svg::Stroke(penWidth, svg::Color::Black));
@@ -120,20 +120,20 @@ int DrawArc(const std::smatch &param)
 {
     // std::cout << "\n  match " << param[0] << "\n";
 
-    auto symbol = SymbolList[toNumber<size_t>(param[7].str())];
+    auto symbol = SymbolList[toInt(param[7].str())];
 
     
 
-    double penWidth = LineWidth(toNumber<int>(param[7].str()));
+    double penWidth = LineWidth(toInt(param[7].str()));
    
-    auto x1 = inchtomm * toNumber<double>(param[1].str());
-    auto y1 = inchtomm * toNumber<double>(param[2].str());
-    auto x2 = inchtomm * toNumber<double>(param[3].str());
-    auto y2 = inchtomm * toNumber<double>(param[4].str());
+    auto x1 = inchtomm * toDouble(param[1].str());
+    auto y1 = inchtomm * toDouble(param[2].str());
+    auto x2 = inchtomm * toDouble(param[3].str());
+    auto y2 = inchtomm * toDouble(param[4].str());
 
     box.bounds(x1, y1);
-    auto rx = inchtomm * toNumber<double>(param[5].str()) - x1;
-    auto ry = inchtomm * toNumber<double>(param[6].str()) - y1;
+    auto rx = inchtomm * toDouble(param[5].str()) - x1;
+    auto ry = inchtomm * toDouble(param[6].str()) - y1;
 
     auto r = std::max(std::abs(rx), std::abs(ry));
 
@@ -162,16 +162,16 @@ int AddSymbol(const std::smatch &param)
     if (param[2] == "r")
     {
 
-        SymbolList.push_back(Circle(milTomm * toNumber<float>(param[3].str())));
+        SymbolList.push_back(Circle(milTomm * toDouble(param[3].str())));
     }
     if (param[2] == "rect")
     {
-        auto w = milTomm * toNumber<float>(param[3].str());
-        auto h = milTomm * toNumber<float>(param[4].str());
+        auto w = milTomm * toDouble(param[3].str());
+        auto h = milTomm * toDouble(param[4].str());
 
         if (param[5].str() == "r")
         {
-            auto r = milTomm * toNumber<float>(param[6].str());
+            auto r = milTomm * toDouble(param[6].str());
             SymbolList.push_back(RoundRect(w, h,r));
         }
         else
@@ -181,15 +181,13 @@ int AddSymbol(const std::smatch &param)
     }
     if (param[2] == "oval")
     {
-        auto w = milTomm * toNumber<float>(param[3].str());
-        auto h = milTomm * toNumber<float>(param[4].str());
+        auto w = milTomm * toDouble(param[3].str());
+        auto h = milTomm * toDouble(param[4].str());
 
         SymbolList.push_back(Oval(w, h));
     }
     return 1;
 }
-
-std::vector<std::pair<std::regex, std::function<int(const std::smatch &)>>> tab;
 
 
 
@@ -203,8 +201,8 @@ int CreatePolyline(const std::smatch &param)
         delete polyline;
     polyline = new svg::Polyline(svg::Fill(svg::Color::Red), svg::Stroke(penWidth, svg::Color::Red));
     ++create;
-    auto x1 = inchtomm * toNumber<double>(param[1].str());
-    auto y1 = inchtomm * toNumber<double>(param[2].str());
+    auto x1 = inchtomm * toDouble(param[1].str());
+    auto y1 = inchtomm * toDouble(param[2].str());
 
     *polyline << svg::Point(x1, y1);
 
@@ -224,8 +222,8 @@ int AddPointToPolyline(const std::smatch &param)
         ++create;
     }
 
-    auto x1 = inchtomm * toNumber<double>(param[1].str());
-    auto y1 = inchtomm * toNumber<double>(param[2].str());
+    auto x1 = inchtomm * toDouble(param[1].str());
+    auto y1 = inchtomm * toDouble(param[2].str());
 
     box.bounds(x1, y1);
 
@@ -244,11 +242,11 @@ int AddArcToPolyline(const std::smatch &param)
   
 
     double penWidth = 0.03;
-    auto x1 = inchtomm * toNumber<double>(param[1].str());
-    auto y1 = inchtomm * toNumber<double>(param[2].str());
+    auto x1 = inchtomm * toDouble(param[1].str());
+    auto y1 = inchtomm * toDouble(param[2].str());
     box.bounds(x1, y1);
-    auto rx = inchtomm * toNumber<double>(param[3].str()) - x1;
-    auto ry = inchtomm * toNumber<double>(param[4].str()) - y1;
+    auto rx = inchtomm * toDouble(param[3].str()) - x1;
+    auto ry = inchtomm * toDouble(param[4].str()) - y1;
 
     int sign = 1;
 
@@ -293,22 +291,29 @@ int AddPolylineToDoc(const std::smatch &param)
     return 0;
 }
 
+
+
+
+std::vector<std::pair<const std::regex, std::function<int(const std::smatch &)>>> actionTable;
+
+
+
 int main()
 {
   
 
-    tab.push_back({E, AddSymbol});
-    tab.push_back({P, DrawSymbol});
-    tab.push_back({A, DrawArc});
-    tab.push_back({L, DrawLine});
+    actionTable.push_back({E, AddSymbol});
+    actionTable.push_back({P, DrawSymbol});
+    actionTable.push_back({A, DrawArc});
+    actionTable.push_back({L, DrawLine});
 
-    tab.push_back({S, n});
-    tab.push_back({OB, CreatePolyline});
-    tab.push_back({OS, AddPointToPolyline});
-    tab.push_back({OC, AddArcToPolyline});
+    actionTable.push_back({S, n});
+    actionTable.push_back({OB, CreatePolyline});
+    actionTable.push_back({OS, AddPointToPolyline});
+    actionTable.push_back({OC, AddArcToPolyline});
 
-    tab.push_back({OE, AddPolylineToDoc});
-    tab.push_back({SE, n});
+    actionTable.push_back({OE, AddPolylineToDoc});
+    actionTable.push_back({SE, n});
 
     std::filesystem::path p( R"(..\data\example1\soldermask_top)");
        
@@ -335,7 +340,7 @@ int main()
             while (std::getline(ss, data))
             {
                
-                for (auto element : tab)
+                for (auto element : actionTable)
                 {
 
                     if (std::regex_match(data, match, element.first))

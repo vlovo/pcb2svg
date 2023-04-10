@@ -26,23 +26,36 @@ template <typename T> T toNumber(const std::string& in)
     return (val);
 };
 
-double toFloat(const std::string& in)
+double toDouble(const std::string& in)
 {
     bool failed = false;
-    double val;
+    double val=0.0;
     
     auto result =  std::from_chars(in.data(), in.data()+in.size(), val);
 
 
     return (val);
 };
-double toInt(const std::string& in)
+
+float toFloat(const std::string& in)
 {
     bool failed = false;
-    int val;
+    float val = 0.0;
 
     auto result = std::from_chars(in.data(), in.data() + in.size(), val);
 
+
+    return (val);
+};
+
+
+int32_t toInt(const std::string& in)
+{
+    bool failed = false;
+    int32_t val=0;
+
+    auto result = std::from_chars(in.data(), in.data() + in.size(), val);
+ 
 
     return (val);
 };
