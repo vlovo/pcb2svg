@@ -1,0 +1,6 @@
+UNITS=INCH
+.dielectric_constant=1
+.loss_tangent=0.02
+.layer_dielectric=0.000393701
+.comment=dielectric layer
+.eda_layers=Soldermask_Top

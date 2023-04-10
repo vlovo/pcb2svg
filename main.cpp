@@ -295,7 +295,7 @@ int AddPolylineToDoc(const std::smatch &param)
 
 int main()
 {
-    std::cout << "Hello World!\n";
+  
 
     tab.push_back({E, AddSymbol});
     tab.push_back({P, DrawSymbol});
@@ -310,8 +310,8 @@ int main()
     tab.push_back({OE, AddPolylineToDoc});
     tab.push_back({SE, n});
 
-    std::filesystem::path p(
-        R"(C:\Users\markus\source\repos\ConsoleApplication5\ConsoleApplication5\steps\cellular_flip-phone\layers\soldermask_top)");
+    std::filesystem::path p( R"(..\data\example1\soldermask_top)");
+       
 
     for (auto const &dir_entry : std::filesystem::directory_iterator{p})
     {
