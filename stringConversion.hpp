@@ -43,6 +43,7 @@ inline float toFloat(const std::string& in)
 {
     bool failed = false;
     float val = 0.0;
+
 #if _MSVC_LANG  == 202002L 
     auto result = std::from_chars(in.data(), in.data() + in.size(), val);
 #else
@@ -52,11 +53,11 @@ inline float toFloat(const std::string& in)
     return (val);
 };
 
-
 inline int32_t toInt(const std::string& in)
 {
     bool failed = false;
     int32_t val=0;
+
 #if _MSVC_LANG  == 202002L 
     auto result = std::from_chars(in.data(), in.data() + in.size(), val);
 #else
