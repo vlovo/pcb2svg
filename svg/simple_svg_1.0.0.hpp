@@ -456,23 +456,37 @@ namespace svg
         {
             std::stringstream ss;
 
-            //std::string id = std::format("d=\" M {0} {1} {2} A {3} {4} {5} {6} {7} {8} {9} \"");
+           
                                                 
-               
-            std::string arc = std::format("d=\" M {0} {1} A {2} {3} {4} {5} {6} {7} {8}\" ",
-                translateX(start_point.x, layout),
-                                            translateY(start_point.y,layout),
-                                            radius,
-                                            radius,
-                                            0,
-                                            0,
-                                            cw,
-                                            translateX(end_point.x,layout),
-                                            translateY(end_point.y,layout)
-                                            );
+            std::stringstream arcStream;
+            arcStream << "d=\" M "
+                << translateX(start_point.x, layout) << " "
+                << translateY(start_point.y, layout) << " "
+                << "A "
+                << radius << " "
+                << radius << " "
+                << int(0) << " "
+                << int(0) << " "
+                << cw << " "
+                <<translateX(end_point.x, layout) << " "
+                <<translateY(end_point.y, layout)
+                << "\" ";
 
-            //  <path d="M 70 90 A 150 150 0 0 1 270 90" />
-            ss << elemStart("path") << arc <<   fill.toString(layout)<<
+
+                //std::string arc = std::format("d=\" M {0} {1} A {2} {3} {4} {5} {6} {7} {8}\" ",
+                //translateX(start_point.x, layout),
+                //                            translateY(start_point.y,layout),
+                //                            radius,
+                //                            radius,
+                //                            0,
+                //                            0,
+                //                            cw,
+                //                            translateX(end_point.x,layout),
+                //                            translateY(end_point.y,layout)
+                //                            );
+
+            
+            ss << elemStart("path") << arcStream.str() <<   fill.toString(layout)<<
                   stroke.toString(layout) << emptyElemEnd();
             return ss.str();
         }
