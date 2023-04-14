@@ -160,7 +160,7 @@ namespace svg
         if (layout.origin == Layout::BottomLeft || layout.origin == Layout::BottomRight)
             return layout.dimensions.height - ((y + layout.origin_offset.y) * layout.scale);
         else
-            return (layout.origin_offset.y + y) * layout.scale;
+            return (layout.origin_offset.y + (-1)*y) * layout.scale;
     }
     inline double translateScale(double dimension, Layout const & layout)
     {
