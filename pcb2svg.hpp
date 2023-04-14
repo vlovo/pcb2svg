@@ -25,10 +25,11 @@ namespace pcb2svg
 
     svg::Point lastPolyPoint;
 
-    using Symbols = std::vector<std::variant<Circle, Rect, RoundRect, Oval>>;
+   
+    using Symbols = std::vector<std::variant<Circle, Rect, RoundRect, Oval, Unknown>>;
 
 
-    Symbols SymbolList;
+    Symbols SymbolList(100,Unknown());
 
    inline  int DrawSymbol(const std::smatch& param)
     {
@@ -40,21 +41,28 @@ namespace pcb2svg
 
         double penWidth = 0.05;
 
+        int orientation = toInt(param[6]);
+
         std::visit(
             [&](auto&& arg) {
                 using T = std::decay_t<decltype(arg)>;
                 if constexpr (std::is_same_v<T, Circle>)
                 {
-                    doc << svg::Circle(svg::Point(x, y), arg.radius * 2, svg::Fill(), svg::Stroke(penWidth, svg::Color::Green));
+                    doc << svg::Circle(svg::Point(x, y), arg.d  , svg::Fill(svg::Color::Green), svg::Stroke(penWidth, svg::Color::Green));
                 }
                 else if constexpr (std::is_same_v<T, Rect>)
                 {
-                    doc << svg::Rectangle(svg::Point(x - (arg.width / 2.0), y - (arg.height / 2.0)), arg.width, arg.height, svg::Fill(), svg::Stroke(penWidth, svg::Color::Yellow));
+                    doc << svg::Rectangle(svg::Point(x - (arg.width / 2.0), y - (arg.height / 2.0)), arg.width, arg.height, svg::Fill(svg::Color::Aqua), svg::Stroke(penWidth, svg::Color::Aqua));
                 }
                 else if constexpr (std::is_same_v<T, RoundRect>)
                 {
-                    doc << svg::RoundRectangle(svg::Point(x - (arg.width / 2.0), y - (arg.height / 2.0)), arg.width, arg.height, arg.radius, svg::Fill(), svg::Stroke(penWidth, svg::Color::Yellow));
+                    doc << svg::RoundRectangle(svg::Point(x - (arg.width / 2.0), y - (arg.height / 2.0)), arg.width, arg.height, arg.radius, svg::Fill(svg::Color::Aqua), svg::Stroke(penWidth, svg::Color::Aqua));
                 }
+                else if  constexpr (std::is_same_v<T, Unknown>)
+                {
+
+                }
+
             },
             symbol);
 
@@ -71,7 +79,7 @@ namespace pcb2svg
                 if constexpr (std::is_same_v<T, Circle>)
                 {
 
-                    ret = (arg.radius);
+                    ret = (arg.d);
                 }
 
                 else if constexpr (std::is_same_v<T, Rect>)
@@ -114,11 +122,7 @@ namespace pcb2svg
 
    inline   int DrawArc(const std::smatch& param)
     {
-        // std::cout << "\n  match " << param[0] << "\n";
-
-        auto symbol = SymbolList[toInt(param[7].str())];
-
-
+    
 
         double penWidth = LineWidth(toInt(param[7].str()));
 
@@ -133,7 +137,7 @@ namespace pcb2svg
 
         auto r = std::max(std::abs(rx), std::abs(ry));
 
-        int cw = param[10].str() == "Y" ? 0 : 1;
+        int cw = param[10].str() == "Y" ? 1 : 0;
 
         doc << svg::Arc(svg::Point(x1, y1), svg::Point(x2, y2), r, cw,
             svg::Stroke(penWidth, svg::Color::Gray));
@@ -151,13 +155,14 @@ namespace pcb2svg
    inline  int AddSymbol(const std::smatch& param)
     {
 
+       int index = toInt(param[1]);
 
         if (param[2] == "r")
         {
 
-            SymbolList.push_back(Circle(milTomm * toDouble(param[3].str())));
+            SymbolList[index] = (Circle(milTomm * toDouble(param[3].str())));
         }
-        if (param[2] == "rect")
+        else if (param[2] == "rect")
         {
             auto w = milTomm * toDouble(param[3].str());
             auto h = milTomm * toDouble(param[4].str());
@@ -165,19 +170,23 @@ namespace pcb2svg
             if (param[5].str() == "r")
             {
                 auto r = milTomm * toDouble(param[6].str());
-                SymbolList.push_back(RoundRect(w, h, r));
+                SymbolList[index]=(RoundRect(w, h, r));
             }
             else
             {
-                SymbolList.push_back(Rect(w, h));
+                SymbolList[index]=(Rect(w, h));
             }
         }
-        if (param[2] == "oval")
+        else if (param[2] == "oval")
         {
             auto w = milTomm * toDouble(param[3].str());
             auto h = milTomm * toDouble(param[4].str());
 
-            SymbolList.push_back(Oval(w, h));
+            SymbolList[index]=(Oval(w, h));
+        }
+        else
+        {
+            SymbolList[index] = Unknown();
         }
         return 1;
     }
@@ -247,7 +256,7 @@ namespace pcb2svg
             sign = 1;
         auto r = std::max(std::abs(rx), std::abs(ry));
 
-        int cw = param[5].str() == "Y" ? 0 : 1;
+        int cw = param[5].str() == "Y" ? 1 : 0;
 
         doc << svg::Arc(svg::Point(lastPolyPoint.x, lastPolyPoint.y), svg::Point(x1, y1), sign * r, cw,
             svg::Stroke(penWidth, svg::Color::Red));
@@ -289,6 +298,8 @@ namespace pcb2svg
 
     inline	std::string  pcb2svg(const std::string& filename)
 	{
+
+       
 
         actionTable.push_back({ E, AddSymbol });
         actionTable.push_back({ P, DrawSymbol });

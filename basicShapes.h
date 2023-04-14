@@ -31,12 +31,17 @@ struct Brush
     double width;
 };
 
+struct Unknown
+{
+     
+};
+
 struct Circle
 {
-    Circle(double r) : radius(r)
+    Circle(double d) : d(d)
     {
     }
-    double radius;
+    double d;
 };
 
 struct Rect
