@@ -26,8 +26,9 @@ namespace pcb2svg
     svg::Point lastPolyPoint;
 
    
-    using Symbols = std::vector<std::variant<Circle, Rect, RoundRect, Oval, Unknown>>;
+    using Symbols = std::vector<std::variant<Circle, Rect, RoundRect, Oval,RoundDonut, Unknown>>;
 
+    std::unordered_map<std::string, int>  statistics;
 
     Symbols SymbolList(100,Unknown());
 
@@ -49,14 +50,24 @@ namespace pcb2svg
                 if constexpr (std::is_same_v<T, Circle>)
                 {
                     doc << svg::Circle(svg::Point(x, y), arg.d  , svg::Fill(svg::Color::Green), svg::Stroke(penWidth, svg::Color::Green));
+                    statistics["Circle"]++;
                 }
                 else if constexpr (std::is_same_v<T, Rect>)
                 {
-                    doc << svg::Rectangle(svg::Point(x - (arg.width / 2.0), y - (arg.height / 2.0)), arg.width, arg.height, svg::Fill(svg::Color::Aqua), svg::Stroke(penWidth, svg::Color::Aqua));
+                    doc << svg::Rectangle(svg::Point(x - (arg.width / 2.0), y - (arg.height / 2.0)), arg.width, arg.height, svg::Fill(svg::Color::Green), svg::Stroke(penWidth, svg::Color::Green));
+                
+                    statistics["Rectangle"]++;
                 }
                 else if constexpr (std::is_same_v<T, RoundRect>)
                 {
-                    doc << svg::RoundRectangle(svg::Point(x - (arg.width / 2.0), y - (arg.height / 2.0)), arg.width, arg.height, arg.radius, svg::Fill(svg::Color::Aqua), svg::Stroke(penWidth, svg::Color::Aqua));
+                    doc << svg::RoundRectangle(svg::Point(x - (arg.width / 2.0), y - (arg.height / 2.0)), arg.width, arg.height, arg.radius, svg::Fill(svg::Color::Green), svg::Stroke(penWidth, svg::Color::Green));
+                    statistics["RoundRect"]++;
+                }
+                else if constexpr (std::is_same_v<T, RoundDonut>)
+                {
+                    doc << svg::Circle(svg::Point(x, y), arg.od ,svg::Fill(svg::Color::Transparent), svg::Stroke(penWidth, svg::Color::Green));
+                    doc << svg::Circle(svg::Point(x, y), arg.id, svg::Fill(svg::Color::Transparent), svg::Stroke(penWidth, svg::Color::Green));
+                    statistics["RoundDonut"]++;  
                 }
                 else if  constexpr (std::is_same_v<T, Unknown>)
                 {
@@ -83,6 +94,12 @@ namespace pcb2svg
                 }
 
                 else if constexpr (std::is_same_v<T, Rect>)
+                {
+
+                    ret = (arg.width);
+                }
+
+                else if constexpr (std::is_same_v<T, RoundRect>)
                 {
 
                     ret = (arg.width);
@@ -117,6 +134,7 @@ namespace pcb2svg
 
         doc << line;
 
+        statistics["Line"]++;
         return 1;
     }
 
@@ -139,9 +157,9 @@ namespace pcb2svg
 
         int cw = param[10].str() == "Y" ? 1 : 0;
 
-        doc << svg::Arc(svg::Point(x1, y1), svg::Point(x2, y2), r, cw,
-            svg::Stroke(penWidth, svg::Color::Gray));
-
+        doc << svg::Arc(svg::Point(x1, y1), svg::Point(x2, y2), r, cw,  svg::Stroke(penWidth, svg::Color::Gray));
+          
+        statistics["Arc"]++;
         return 1;
     }
 
@@ -184,6 +202,13 @@ namespace pcb2svg
 
             SymbolList[index]=(Oval(w, h));
         }
+        else if (param[2] == "donut_r")
+        {
+            auto w = milTomm * toDouble(param[3].str());
+            auto h = milTomm * toDouble(param[4].str());
+
+            SymbolList[index] = (RoundDonut(w, h));
+        }
         else
         {
             SymbolList[index] = Unknown();
@@ -201,7 +226,7 @@ namespace pcb2svg
         double penWidth = 0.05;
         if (polyline != nullptr)
             delete polyline;
-        polyline = new svg::Polyline(svg::Fill(svg::Color::Red), svg::Stroke(penWidth, svg::Color::Red));
+        polyline = new svg::Polyline(svg::Fill(svg::Color::Transparent), svg::Stroke(penWidth, svg::Color::Red));
        
         auto x1 = inchtomm * toDouble(param[1].str());
         auto y1 = inchtomm * toDouble(param[2].str());
@@ -211,6 +236,7 @@ namespace pcb2svg
         lastPolyPoint = svg::Point(x1, y1);
 
         box.bounds(x1, y1);
+        statistics["Polyline"]++;
         return 0;
     }
 
@@ -292,7 +318,11 @@ namespace pcb2svg
         }
         return 0;
     }
-
+    inline   int SurfaceEnd(const std::smatch& param)
+    {
+        statistics["Surfaces"]++;
+        return 0;
+    }
 
     std::vector<std::pair<const std::regex, std::function<int(const std::smatch&)>>> actionTable;
 
@@ -312,7 +342,8 @@ namespace pcb2svg
         actionTable.push_back({ OC, AddArcToPolyline });
 
         actionTable.push_back({ OE, AddPolylineToDoc });
-     
+        actionTable.push_back({ SE, SurfaceEnd });
+
 
         std::filesystem::path p(filename);
 

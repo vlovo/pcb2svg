@@ -12,7 +12,7 @@ int main(int argc, char** argv)
 	else
 	{
 		std::cout << "no file specified on command line. usage: pcb2svg.exe infile \n";
-		file = "..\\data\\example1\\soldermask_bottom\\features";
+		file = "..\\data\\example1\\soldermask_top\\features";
 	//C:\Users\markus\source\repos\pcb2svg\data\example1\soldermask_top
 		std::cout << "example file " << file << " is used\n";
 	}

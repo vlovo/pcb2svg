@@ -64,6 +64,16 @@ struct RoundRect
 
 };
 
+struct RoundDonut
+{
+    RoundDonut(double od, double id ) : od(od), id(id) 
+    {
+    }
+
+    double od, id; 
+
+};
+
 struct Oval
 {
     Oval(double w, double h) : width(w), height(h)
