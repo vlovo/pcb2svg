@@ -30,7 +30,7 @@ namespace pcb2svg
 
     std::unordered_map<std::string, int>  statistics;
 
-    Symbols SymbolList(100,Unknown());
+    Symbols SymbolList(200,Unknown());
 
    inline  int DrawSymbol(const std::smatch& param)
     {
@@ -38,7 +38,7 @@ namespace pcb2svg
         auto x = inchtomm * toDouble(param[1].str());
         auto y = inchtomm * toDouble(param[2].str());
 
-        auto symbol = SymbolList[toInt(param[3].str())];
+        auto symbol = SymbolList[toInt(param[3])];
 
         double penWidth = 0.05;
 
@@ -374,7 +374,10 @@ namespace pcb2svg
         }
 
 
-
+        for (auto e : statistics)
+        {
+            std::cout << e.first << " = " << e.second << "\n";
+        }
         return doc.toString();
 
 
