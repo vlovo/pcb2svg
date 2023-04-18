@@ -18,8 +18,8 @@
 namespace pcb2svg
 {
 
-
-    svg::Document doc;
+    constexpr double outLineWidth = 0.045;
+   //svg::Document doc;
 
     svg::Polyline* polyline;
 
@@ -32,7 +32,7 @@ namespace pcb2svg
 
     Symbols SymbolList(200,Unknown());
 
-   inline  int DrawSymbol(const std::smatch& param)
+   inline  int DrawSymbol(  svg::Document& doc,const std::smatch& param)
     {
 
         auto x = inchtomm * toDouble(param[1].str());
@@ -40,7 +40,7 @@ namespace pcb2svg
 
         auto symbol = SymbolList[toInt(param[3])];
 
-        double penWidth = 0.05;
+        double penWidth = 0;
 
         int orientation = toInt(param[6]);
 
@@ -54,13 +54,29 @@ namespace pcb2svg
                 }
                 else if constexpr (std::is_same_v<T, Rect>)
                 {
-                    doc << svg::Rectangle(svg::Point(x - (arg.width / 2.0), y - (arg.height / 2.0)), arg.width, arg.height, svg::Fill(svg::Color::Green), svg::Stroke(penWidth, svg::Color::Green));
+                      x = x - (arg.width / 2.0);
+                      y = y + (arg.height / 2.0);
+                      auto w = arg.width;
+                      auto h = arg.height;
+                      switch (orientation)
+                      {
+                      case 0:
+                          break;
+
+                      }
+
+                    doc << svg::Rectangle(svg::Point(x,y ), w,h, svg::Fill(svg::Color::Green), svg::Stroke(penWidth, svg::Color::Green));
                 
                     statistics["Rectangle"]++;
                 }
                 else if constexpr (std::is_same_v<T, RoundRect>)
                 {
-                    doc << svg::RoundRectangle(svg::Point(x - (arg.width / 2.0), y - (arg.height / 2.0)), arg.width, arg.height, arg.radius, svg::Fill(svg::Color::Green), svg::Stroke(penWidth, svg::Color::Green));
+                    x = x - (arg.width / 2.0);
+                    y = y + (arg.height / 2.0);
+                    auto w = arg.width;
+                    auto h = arg.height;
+
+                    doc << svg::RoundRectangle(svg::Point(x, y), w, h, arg.radius, svg::Fill(svg::Color::Green), svg::Stroke(penWidth, svg::Color::Green));
                     statistics["RoundRect"]++;
                 }
                 else if constexpr (std::is_same_v<T, RoundDonut>)
@@ -71,7 +87,7 @@ namespace pcb2svg
                 }
                 else if  constexpr (std::is_same_v<T, Unknown>)
                 {
-
+                    statistics["Unknown"]++;
                 }
 
             },
@@ -115,7 +131,7 @@ namespace pcb2svg
         return ret;
     }
 
-   inline  int DrawLine(const std::smatch& param)
+   inline  int DrawLine(  svg::Document& doc,const std::smatch& param)
     {
 
 
@@ -138,7 +154,7 @@ namespace pcb2svg
         return 1;
     }
 
-   inline   int DrawArc(const std::smatch& param)
+   inline   int DrawArc(svg::Document& doc,const std::smatch& param)
     {
     
 
@@ -157,7 +173,7 @@ namespace pcb2svg
 
         int cw = param[10].str() == "Y" ? 1 : 0;
 
-        doc << svg::Arc(svg::Point(x1, y1), svg::Point(x2, y2), r, cw,  svg::Stroke(penWidth, svg::Color::Gray));
+        doc << svg::Arc(svg::Point(x1, y1), svg::Point(x2, y2), r, cw,  svg::Stroke(penWidth, svg::Color::Black));
           
         statistics["Arc"]++;
         return 1;
@@ -165,12 +181,12 @@ namespace pcb2svg
 
 
 
-   inline  int DrawSegment(const std::smatch& param)
+   inline  int DrawSegment(svg::Document& doc, const std::smatch& param)
     {
         return 1;
     }
 
-   inline  int AddSymbol(const std::smatch& param)
+   inline  int AddSymbol(svg::Document& doc,const std::smatch& param)
     {
 
        int index = toInt(param[1]);
@@ -219,14 +235,13 @@ namespace pcb2svg
 
 
     
-    inline    int CreatePolyline(const std::smatch& param)
+    inline    int CreatePolyline(svg::Document& doc, const std::smatch& param)
     {
 
-
-        double penWidth = 0.05;
+ 
         if (polyline != nullptr)
             delete polyline;
-        polyline = new svg::Polyline(svg::Fill(svg::Color::Transparent), svg::Stroke(penWidth, svg::Color::Red));
+        polyline = new svg::Polyline(svg::Fill(svg::Color::Transparent), svg::Stroke(outLineWidth, svg::Color::Red));
        
         auto x1 = inchtomm * toDouble(param[1].str());
         auto y1 = inchtomm * toDouble(param[2].str());
@@ -240,13 +255,13 @@ namespace pcb2svg
         return 0;
     }
 
-    inline  int AddPointToPolyline(const std::smatch& param)
+    inline  int AddPointToPolyline(svg::Document& doc, const std::smatch& param)
     {
 
-        double penWidth = 0.03;
+    
         if (polyline == nullptr)
         {
-            polyline = new svg::Polyline(svg::Fill(svg::Color::Transparent), svg::Stroke(penWidth, svg::Color::Red));
+            polyline = new svg::Polyline(svg::Fill(svg::Color::Transparent), svg::Stroke(outLineWidth, svg::Color::Red));
             
         }
 
@@ -264,12 +279,12 @@ namespace pcb2svg
         return 0;
     }
 
-    inline   int AddArcToPolyline(const std::smatch& param)
+    inline   int AddArcToPolyline(svg::Document& doc, const std::smatch& param)
     {
 
 
 
-        double penWidth = 0.03;
+         
         auto x1 = inchtomm * toDouble(param[1].str());
         auto y1 = inchtomm * toDouble(param[2].str());
         box.bounds(x1, y1);
@@ -285,7 +300,7 @@ namespace pcb2svg
         int cw = param[5].str() == "Y" ? 1 : 0;
 
         doc << svg::Arc(svg::Point(lastPolyPoint.x, lastPolyPoint.y), svg::Point(x1, y1), sign * r, cw,
-            svg::Stroke(penWidth, svg::Color::Red));
+            svg::Stroke(outLineWidth, svg::Color::Red));
 
         lastPolyPoint = svg::Point(x1, y1);
 
@@ -296,7 +311,7 @@ namespace pcb2svg
             delete polyline;
             polyline = nullptr;
 
-            double penWidth = 0.03;
+            double penWidth = 0.045;
 
             polyline = new svg::Polyline(svg::Fill(svg::Color::Transparent), svg::Stroke(penWidth, svg::Color::Red));
              
@@ -307,7 +322,7 @@ namespace pcb2svg
     }
 
     
-    inline   int AddPolylineToDoc(const std::smatch& param)
+    inline   int AddPolylineToDoc(svg::Document& doc, const std::smatch& param)
     {
         if (polyline != nullptr)
         {
@@ -318,18 +333,18 @@ namespace pcb2svg
         }
         return 0;
     }
-    inline   int SurfaceEnd(const std::smatch& param)
+    inline   int SurfaceEnd(svg::Document& doc,const std::smatch& param)
     {
         statistics["Surfaces"]++;
         return 0;
     }
 
-    std::vector<std::pair<const std::regex, std::function<int(const std::smatch&)>>> actionTable;
+    std::vector<std::pair<const std::regex, std::function<int(svg::Document& doc,const std::smatch&)>>> actionTable;
 
-    inline	std::string  pcb2svg(const std::string& filename)
+    inline	std::string  pcb2svg(  svg::Document &doc, const std::string& filename)
 	{
-
-       
+        std::cout << "\n  " << filename << " \n";
+        statistics.clear();
 
         actionTable.push_back({ E, AddSymbol });
         actionTable.push_back({ P, DrawSymbol });
@@ -353,8 +368,7 @@ namespace pcb2svg
         ss << file.rdbuf();
 
 
-        svg::Dimensions dimensions(80, 45);
-        doc = svg::Document(p.string() + ".svg", svg::Layout(dimensions, svg::Layout::TopLeft));
+      
 
         std::string data;
         std::smatch match;
@@ -367,7 +381,7 @@ namespace pcb2svg
                 if (std::regex_match(data, match, element.first))
                 {
 
-                    element.second(match);
+                    element.second(doc,match);
                     break;
                 }
             }
@@ -378,6 +392,8 @@ namespace pcb2svg
         {
             std::cout << e.first << " = " << e.second << "\n";
         }
+
+        std::cout << "-------------------------------------\n";
         return doc.toString();
 
 
