@@ -368,7 +368,8 @@ namespace pcb2svg
         ss << file.rdbuf();
 
 
-      
+        auto groupElement = svg::elemStart("g") + svg::attribute("id", filename) + svg::elemClose();
+        doc << groupElement;
 
         std::string data;
         std::smatch match;
@@ -387,6 +388,8 @@ namespace pcb2svg
             }
         }
 
+
+        doc << svg::elemEnd("g");
 
         for (auto e : statistics)
         {

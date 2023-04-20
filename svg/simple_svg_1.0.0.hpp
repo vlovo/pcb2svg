@@ -64,6 +64,10 @@ namespace svg
         return "/>\n";
     }
 
+    inline std::string elemClose()
+    {
+        return ">\n";
+    }
     // Quick optional return type.  This allows functions to return an invalid
     //  value if no good return is possible.  The user checks for validity
     //  before using the returned value.
@@ -174,6 +178,8 @@ namespace svg
         virtual ~Serializeable() { };
         virtual std::string toString(Layout const & layout) const = 0;
     };
+
+    
 
     class Color : public Serializeable
     {
@@ -756,6 +762,12 @@ namespace svg
         Document & operator<<(Shape const & shape)
         {
             body_nodes_str_list.push_back(shape.toString(layout));
+            return *this;
+        }
+
+        Document& operator<<(std::string const& element)
+        {
+            body_nodes_str_list.push_back(element);
             return *this;
         }
         std::string toString() const

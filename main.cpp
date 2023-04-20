@@ -19,10 +19,12 @@ int main(int argc, char** argv)
 
 	svg::Dimensions dimensions(80, 45);
 	svg::Document  doc = svg::Document(file + ".svg", svg::Layout(dimensions, svg::Layout::TopLeft));
-
+    
+	pcb2svg::pcb2svg(doc, "..\\data\\example1\\profile");
+	
 	auto svg = pcb2svg::pcb2svg(doc,file);
 
-	pcb2svg::pcb2svg(doc, "..\\data\\example1\\profile");
+	
 
 	std::ofstream out("out.svg");
 
