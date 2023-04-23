@@ -18,7 +18,7 @@
 namespace pcb2svg
 {
 
-    constexpr double outLineWidth = 0.045;
+   
    //svg::Document doc;
 
     svg::Polyline* polyline;
@@ -311,9 +311,9 @@ namespace pcb2svg
             delete polyline;
             polyline = nullptr;
 
-            double penWidth = 0.045;
+           
 
-            polyline = new svg::Polyline(svg::Fill(svg::Color::Transparent), svg::Stroke(penWidth, svg::Color::Red));
+            polyline = new svg::Polyline(svg::Fill(svg::Color::Transparent), svg::Stroke(outLineWidth, svg::Color::Red));
              
             *polyline << svg::Point(x1, y1);
         }
