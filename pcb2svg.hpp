@@ -19,12 +19,13 @@ namespace pcb2svg
 {
 
    
-   //svg::Document doc;
+  
 
     svg::Polyline* polyline;
 
     svg::Point lastPolyPoint;
 
+    BoundingBox box;
    
     using Symbols = std::vector<std::variant<Circle, Rect, RoundRect, Oval,RoundDonut, Unknown>>;
 
@@ -341,10 +342,12 @@ namespace pcb2svg
 
     std::vector<std::pair<const std::regex, std::function<int(svg::Document& doc,const std::smatch&)>>> actionTable;
 
-    inline	std::string  pcb2svg(  svg::Document &doc, const std::string& filename)
+    inline	std::string  pcb2svg(const std::string& filename, BoundingBox &boundbox, svg::Document &doc )
 	{
         std::cout << "\n  " << filename << " \n";
         statistics.clear();
+
+        box = BoundingBox();
 
         actionTable.push_back({ E, AddSymbol });
         actionTable.push_back({ P, DrawSymbol });
@@ -373,9 +376,10 @@ namespace pcb2svg
 
         std::string data;
         std::smatch match;
+        int cnt = 0;
         while (std::getline(ss, data))
         {
-
+            cnt++;
             for (auto element : actionTable)
             {
 
@@ -397,6 +401,9 @@ namespace pcb2svg
         }
 
         std::cout << "-------------------------------------\n";
+
+
+        boundbox = box;
         return doc.toString();
 
 

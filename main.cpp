@@ -12,17 +12,30 @@ int main(int argc, char** argv)
 	else
 	{
 		std::cout << "no file specified on command line. usage: pcb2svg.exe infile \n";
-		file = "..\\data\\example1\\soldermask_top\\features";
+		file = "..\\data\\example1\\soldermask_bottom\\features";
 	 
 		std::cout << "example file " << file << " is used\n";
 	}
 
 	svg::Dimensions dimensions(80, 45);
+
 	svg::Document  doc = svg::Document(file + ".svg", svg::Layout(dimensions, svg::Layout::TopLeft));
     
-	pcb2svg::pcb2svg(doc, "..\\data\\example1\\profile");
+	pcb2svg::BoundingBox box;
+
+	pcb2svg::pcb2svg("..\\data\\example1\\profile",box ,doc );
+
+
+	//----------------------------------------------------------------------------
+
+
+	dimensions = svg::Dimensions(box.x2 - box.x1, box.y2 - box.y1);
 	
-	auto svg = pcb2svg::pcb2svg(doc,file);
+	doc = svg::Document(file + ".svg", svg::Layout(dimensions, svg::Layout::TopLeft));
+	
+	pcb2svg::pcb2svg("..\\data\\example1\\profile", box, doc);
+	
+	auto svg = pcb2svg::pcb2svg(file,box,doc);
 
 	
 

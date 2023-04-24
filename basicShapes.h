@@ -23,7 +23,7 @@ namespace  pcb2svg
         };
     };
 
-    BoundingBox box;
+  
 
     struct Brush
     {

@@ -752,6 +752,54 @@ namespace svg
         }
     };
 
+
+    class Group
+    {
+    public:
+        Group() {};
+        Group(std::string const& id, Layout layout = Layout())
+            : id(id),layout(layout)  { }
+
+        Group& operator<<(Shape const& shape)
+        {
+            body_nodes_str_list.push_back(shape.toString(layout));
+            return *this;
+        }
+
+        Group& operator<<(std::string const& element)
+        {
+            body_nodes_str_list.push_back(element);
+            return *this;
+        }
+        std::string toString() const
+        {
+            std::stringstream ss;
+            writeToStream(ss);
+            return ss.str();
+        }
+        
+
+        void setLayout(const svg::Layout& layout)
+        {
+            this->layout = layout;
+        }
+    private:
+        void writeToStream(std::ostream& str) const
+        {
+            str << "<g " << attribute("id", id)<<  "g>";
+            for (const auto& body_node_str : body_nodes_str_list) {
+                str << body_node_str;
+            }
+            str << elemEnd("g");
+        }
+
+    private:
+        std::string id;
+        Layout layout;
+
+        std::vector<std::string> body_nodes_str_list;
+    };
+
     class Document
     {
     public:
@@ -768,6 +816,12 @@ namespace svg
         Document& operator<<(std::string const& element)
         {
             body_nodes_str_list.push_back(element);
+            return *this;
+        }
+
+        Document& operator<<(Group const& group)
+        {
+            body_nodes_str_list.push_back(group.toString());
             return *this;
         }
         std::string toString() const
