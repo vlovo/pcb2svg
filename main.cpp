@@ -35,9 +35,12 @@ int main(int argc, char** argv)
 	
 	pcb2svg::pcb2svg("..\\data\\example1\\profile", box, doc);
 	
-	auto svg = pcb2svg::pcb2svg(file,box,doc);
-
 	
+
+	doc.setViewBox(svg::ViewBox(svg::Dimensions(dimensions), svg::Point(box.x1, box.y1)));
+    
+	
+	auto svg = pcb2svg::pcb2svg(file,box,doc);
 
 	std::ofstream out("out.svg");
 

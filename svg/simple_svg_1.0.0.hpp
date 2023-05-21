@@ -150,6 +150,23 @@ namespace svg
         Point origin_offset;
     };
 
+    struct ViewBox
+    {   
+        ViewBox() {};
+        ViewBox(Dimensions const& dimensions, Point offset) :dimensions(dimensions), offset(offset) {}
+
+        std::string toString() const
+        { 
+            std::stringstream ss;
+            
+            ss << offset.x << " " << offset.y << " " << dimensions.width << " " << dimensions.height;
+            return ss.str();
+        };
+
+        Dimensions dimensions;
+        Point offset;
+    };
+
     // Convert coordinates in user space to SVG native space.
     inline double translateX(double x, Layout const & layout)
     {
@@ -805,7 +822,10 @@ namespace svg
     public:
         Document() {};
         Document(std::string const & file_name, Layout layout = Layout())
-            : file_name(file_name), layout(layout) { }
+            : file_name(file_name), layout(layout) 
+        {
+            this->viewBox = svg::ViewBox(layout.dimensions, svg::Point(0, 0));
+        }
 
         Document & operator<<(Shape const & shape)
         {
@@ -845,6 +865,11 @@ namespace svg
         {
             this->layout =  layout;
         }
+
+        void setViewBox(const svg::ViewBox& viewbox)
+        {
+            this->viewBox = viewbox;
+        }
     private:
         void writeToStream(std::ostream& str) const
         {
@@ -853,8 +878,10 @@ namespace svg
                 << "\"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n<svg "
                 << attribute("width", layout.dimensions.width, "")
                 << attribute("height", layout.dimensions.height, "")
+                << attribute("viewBox",viewBox.toString())
                 << attribute("xmlns", "http://www.w3.org/2000/svg")
                 << attribute("version", "1.1") << ">\n";
+
             for (const auto& body_node_str : body_nodes_str_list) {
                 str << body_node_str;
             }
@@ -864,6 +891,7 @@ namespace svg
     private:
         std::string file_name;
         Layout layout;
+        ViewBox viewBox;
 
         std::vector<std::string> body_nodes_str_list;
     };
