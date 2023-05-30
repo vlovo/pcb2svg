@@ -821,12 +821,16 @@ namespace svg
     {
     public:
         Document() {};
+
         Document(std::string const & file_name, Layout layout = Layout())
             : file_name(file_name), layout(layout) 
         {
             this->viewBox = svg::ViewBox(layout.dimensions, svg::Point(0, 0));
         }
 
+        Document(std::string const& file_name, Layout layout  ,ViewBox viewbox)
+            : file_name(file_name), layout(layout),viewBox(viewbox)
+        {}
         Document & operator<<(Shape const & shape)
         {
             body_nodes_str_list.push_back(shape.toString(layout));
