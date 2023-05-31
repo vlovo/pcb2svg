@@ -2,9 +2,16 @@
 
 convert  ODB++ pcb layout features  to a svg file
 
+
+![](out.svg) 
+
 * currently  a small collection of symbols is supported
 * there is no facility to read ODB++ files directly ( usally  ODB++ files are *.tgz files which means  it 
 is a tar archive  format being   compressed with gzip-
+
+
+
+## 
 
 
 ## third party 
