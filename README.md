@@ -1,6 +1,6 @@
 # pcb2svg
 
-convert  ODB++ pcb layout features  to a svg file
+## convert  ODB++ pcb layout features  to a svg file
 
 
 ![](out.svg) 
@@ -11,7 +11,10 @@ is a tar archive  format being   compressed with gzip-
 
 
 
-## 
+## examples
+
+The example files  are taken from the official odb++ page [4]
+
 
 
 ## third party 
@@ -27,8 +30,10 @@ simple-svg
 
 Further links:
 
-[1] Wikipedia patge [https://en.wikipedia.org/wiki/ODB%2B%2B](https://en.wikipedia.org/wiki/ODB%2B%2B)
+[1] Wikipedia page [https://en.wikipedia.org/wiki/ODB%2B%2B](https://en.wikipedia.org/wiki/ODB%2B%2B)
 
 [2] Main Web Page  ODB++  [https://odbplusplus.com/](https://odbplusplus.com/)
 
-[3] ODB++ Specification   [https://odbplusplus.com/wp-content/uploads/sites/2/2021/02/odb_spec_user.pdf)
+[3] ODB++ Specification   [https://odbplusplus.com/wp-content/uploads/sites/2/2021/02/odb_spec_user.pdf]
+
+[4] example file [https://odbplusplus.com/wp-content/resource-docs/designodb_rigidflex.tgz](https://odbplusplus.com/wp-content/resource-docs/designodb_rigidflex.tgz)
