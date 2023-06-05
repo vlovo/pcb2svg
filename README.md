@@ -12,11 +12,11 @@ is a tar archive  format being   compressed with gzip-
 ## build 
 
 * run cmake to generate your build files
-* teste with  Visual Stuido 2017
+* tested with  Visual Studio 2017
 
 ## usage 
 
-Basically you have to extract your  ODB++ file locally to disk.  Navigate to desired step folder.  Then choose desired layer folder. The features file in here  contains the geometrical informations whether  the profile file contains the outline of current pcb layer.
+Basically you have to extract your  ODB++ file locally to disk. Navigate to desired step folder.  Then choose desired layer folder. The features file in here  contains the geometrical informations whether  the profile file contains the outline of current pcb layer.
 
 call command line: 
 

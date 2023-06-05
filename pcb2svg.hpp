@@ -1,5 +1,34 @@
 
+/*
+* BSD 3-Clause License
 
+Copyright (c) 2023, Markus Leitz
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
 #include <functional>
 #include <regex>
 #include <string>
@@ -28,6 +57,54 @@ using Symbols = std::vector<std::variant<Circle, Rect, RoundRect, Oval, RoundDon
 std::unordered_map<std::string, int> statistics;
 
 Symbols SymbolList(200, Unknown());
+
+inline int AddSymbol(svg::Document &doc, const std::smatch &param)
+{
+
+    int index = toInt(param[1]);
+
+    if (param[2] == "r")
+    {
+
+        SymbolList[index] = (Circle(milTomm * toDouble(param[3].str())));
+    }
+    else if (param[2] == "rect")
+    {
+        auto w = milTomm * toDouble(param[3].str());
+        auto h = milTomm * toDouble(param[4].str());
+
+        if (param[5].str() == "r")
+        {
+            auto r = milTomm * toDouble(param[6].str());
+            SymbolList[index] = (RoundRect(w, h, r));
+        }
+        else
+        {
+            SymbolList[index] = (Rect(w, h));
+        }
+    }
+    else if (param[2] == "oval")
+    {
+        auto w = milTomm * toDouble(param[3].str());
+        auto h = milTomm * toDouble(param[4].str());
+
+        SymbolList[index] = (Oval(w, h));
+    }
+    else if (param[2] == "donut_r")
+    {
+        auto w = milTomm * toDouble(param[3].str());
+        auto h = milTomm * toDouble(param[4].str());
+
+        SymbolList[index] = (RoundDonut(w, h));
+    }
+    else
+    {
+        SymbolList[index] = Unknown();
+        std::cout << param.str() << "\n";
+        std::cout << "--------------------------------------------------\n";
+    }
+    return 1;
+}
 
 inline int DrawSymbol(svg::Document &doc, const std::smatch &param)
 {
@@ -179,54 +256,6 @@ inline int DrawArc(svg::Document &doc, const std::smatch &param)
 
 inline int DrawSegment(svg::Document &doc, const std::smatch &param)
 {
-    return 1;
-}
-
-inline int AddSymbol(svg::Document &doc, const std::smatch &param)
-{
-
-    int index = toInt(param[1]);
-
-    if (param[2] == "r")
-    {
-
-        SymbolList[index] = (Circle(milTomm * toDouble(param[3].str())));
-    }
-    else if (param[2] == "rect")
-    {
-        auto w = milTomm * toDouble(param[3].str());
-        auto h = milTomm * toDouble(param[4].str());
-
-        if (param[5].str() == "r")
-        {
-            auto r = milTomm * toDouble(param[6].str());
-            SymbolList[index] = (RoundRect(w, h, r));
-        }
-        else
-        {
-            SymbolList[index] = (Rect(w, h));
-        }
-    }
-    else if (param[2] == "oval")
-    {
-        auto w = milTomm * toDouble(param[3].str());
-        auto h = milTomm * toDouble(param[4].str());
-
-        SymbolList[index] = (Oval(w, h));
-    }
-    else if (param[2] == "donut_r")
-    {
-        auto w = milTomm * toDouble(param[3].str());
-        auto h = milTomm * toDouble(param[4].str());
-
-        SymbolList[index] = (RoundDonut(w, h));
-    }
-    else
-    {
-        SymbolList[index] = Unknown();
-        std::cout << param.str() << "\n";
-        std::cout << "--------------------------------------------------\n";
-    }
     return 1;
 }
 
