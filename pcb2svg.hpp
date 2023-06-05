@@ -224,6 +224,8 @@ inline int AddSymbol(svg::Document &doc, const std::smatch &param)
     else
     {
         SymbolList[index] = Unknown();
+        std::cout << param.str() << "\n";
+        std::cout << "--------------------------------------------------\n";
     }
     return 1;
 }
@@ -316,6 +318,7 @@ inline int AddPolylineToDoc(svg::Document &doc, const std::smatch &param)
     }
     return 0;
 }
+
 inline int SurfaceEnd(svg::Document &doc, const std::smatch &param)
 {
     statistics["Surfaces"]++;

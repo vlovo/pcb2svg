@@ -5,11 +5,24 @@
 
 ![](out.svg) 
 
-* currently  a small collection of symbols is supported
+* currently  a small subset  of symbols is supported
 * there is no facility to read ODB++ files directly ( usally  ODB++ files are *.tgz files which means  it 
 is a tar archive  format being   compressed with gzip-
 
+## build 
 
+* run cmake to generate your build files
+* teste with  Visual Stuido 2017
+
+## usage 
+
+Basically you have to extract your  ODB++ file locally to disk.  Navigate to desired step folder.  Then choose desired layer folder. The features file in here  contains the geometrical informations whether  the profile file contains the outline of current pcb layer.
+
+call command line: 
+
+```
+pcb2svg.exe profile features output.svg
+```
 
 ## examples
 
