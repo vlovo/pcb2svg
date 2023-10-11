@@ -1,50 +1,38 @@
 #pragma once
-// class for decimal numbers with comma
-#include <sstream>
-class UseCommaAsSeparator : public std::numpunct<char>
-{
-protected:
-    char do_decimal_point() const
-    {
-        return ',';
-    }
-};
 
-template <typename T> T toNumber(const std::string& in)
+#include <sstream>
+
+template <typename T> T toNumber(const std::string &in)
 {
     bool failed = false;
     T val;
     std::istringstream inputStream(in);
-    if (inputStream.str().find(",") != std::string::npos)
-    {
-        std::locale loc = std::locale(std::locale(), new UseCommaAsSeparator);
-        inputStream.imbue(loc);
-    }
+
     failed = (inputStream >> val).fail();
     if (true == failed)
         throw std::exception("extraction failed");
     return (val);
 };
 
-inline double toDouble(const std::string& in)
+inline double toDouble(const std::string &in)
 {
     bool failed = false;
-    double val=0.0;
-#if _MSVC_LANG  == 202002L  
-    auto result =  std::from_chars(in.data(), in.data()+in.size(), val);
+    double val = 0.0;
+#if _MSVC_LANG == 202002L
+    auto result = std::from_chars(in.data(), in.data() + in.size(), val);
 #else
-val = toNumber<double>(in);
+    val = toNumber<double>(in);
 #endif
 
     return (val);
 };
 
-inline float toFloat(const std::string& in)
+inline float toFloat(const std::string &in)
 {
     bool failed = false;
     float val = 0.0;
 
-#if _MSVC_LANG  == 202002L 
+#if _MSVC_LANG == 202002L
     auto result = std::from_chars(in.data(), in.data() + in.size(), val);
 #else
     val = toNumber<float>(in);
@@ -53,12 +41,12 @@ inline float toFloat(const std::string& in)
     return (val);
 };
 
-inline int32_t toInt(const std::string& in)
+inline int32_t toInt(const std::string &in)
 {
     bool failed = false;
-    int32_t val=0;
+    int32_t val = 0;
 
-#if _MSVC_LANG  == 202002L 
+#if _MSVC_LANG == 202002L
     auto result = std::from_chars(in.data(), in.data() + in.size(), val);
 #else
     val = toNumber<int32_t>(in);

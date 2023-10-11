@@ -46,19 +46,53 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace pcb2svg
 {
 
-svg::Polyline *polyline;
-
-svg::Point lastPolyPoint;
-
-BoundingBox box;
-
+constexpr svg::Color::Defaults PadColor = svg::Color::Green;
+constexpr svg::Color::Defaults LineColor = svg::Color::Black;
+constexpr svg::Color::Defaults ArcColor = svg::Color::Black;
+constexpr svg::Color::Defaults SurfaceColor = svg::Color::Red;
 using Symbols = std::vector<std::variant<Circle, Rect, RoundRect, Oval, RoundDonut, Unknown>>;
 
-std::unordered_map<std::string, int> statistics;
+struct BoundingBox
+{
+    double x1, y1, x2, y2;
 
-Symbols SymbolList(200, Unknown());
+    BoundingBox()
+    {
+        x1 = std::numeric_limits<double>::max();
+        x2 = -std::numeric_limits<double>::max();
+        y1 = std::numeric_limits<double>::max();
+        y2 = -std::numeric_limits<double>::max();
+    }
 
-inline int AddSymbol(svg::Document &doc, const std::smatch &param)
+    void update(double x, double y)
+    {
+        x1 = std::min(x, x1);
+        x2 = std::max(x, x2);
+
+        y1 = std::min(y, y1);
+        y2 = std::max(y, y2);
+    };
+};
+struct pcbdata_t
+{
+
+    pcbdata_t::pcbdata_t()
+    {
+        symbolList = Symbols(200, Unknown());
+    }
+
+    svg::Polyline *polyLine = nullptr;
+
+    svg::Point lastPolyPoint;
+
+    BoundingBox box;
+
+    Symbols symbolList;
+
+    std::unordered_map<std::string, int> statistics;
+};
+
+inline int AddSymbol(svg::Document &doc, const std::smatch &param, pcbdata_t &pcbdata)
 {
 
     int index = toInt(param[1]);
@@ -66,7 +100,7 @@ inline int AddSymbol(svg::Document &doc, const std::smatch &param)
     if (param[2] == "r")
     {
 
-        SymbolList[index] = (Circle(milTomm * toDouble(param[3].str())));
+        pcbdata.symbolList[index] = Circle(milTomm * toDouble(param[3].str()));
     }
     else if (param[2] == "rect")
     {
@@ -76,11 +110,11 @@ inline int AddSymbol(svg::Document &doc, const std::smatch &param)
         if (param[5].str() == "r")
         {
             auto r = milTomm * toDouble(param[6].str());
-            SymbolList[index] = (RoundRect(w, h, r));
+            pcbdata.symbolList[index] = RoundRect(w, h, r);
         }
         else
         {
-            SymbolList[index] = (Rect(w, h));
+            pcbdata.symbolList[index] = Rect(w, h);
         }
     }
     else if (param[2] == "oval")
@@ -88,31 +122,31 @@ inline int AddSymbol(svg::Document &doc, const std::smatch &param)
         auto w = milTomm * toDouble(param[3].str());
         auto h = milTomm * toDouble(param[4].str());
 
-        SymbolList[index] = (Oval(w, h));
+        pcbdata.symbolList[index] = Oval(w, h);
     }
     else if (param[2] == "donut_r")
     {
         auto w = milTomm * toDouble(param[3].str());
         auto h = milTomm * toDouble(param[4].str());
 
-        SymbolList[index] = (RoundDonut(w, h));
+        pcbdata.symbolList[index] = RoundDonut(w, h);
     }
     else
     {
-        SymbolList[index] = Unknown();
+        pcbdata.symbolList[index] = Unknown();
         std::cout << param.str() << "\n";
         std::cout << "--------------------------------------------------\n";
     }
     return 1;
 }
 
-inline int DrawSymbol(svg::Document &doc, const std::smatch &param)
+inline int DrawSymbol(svg::Document &doc, const std::smatch &param, pcbdata_t &pcbdata)
 {
 
     auto x = inchtomm * toDouble(param[1].str());
     auto y = inchtomm * toDouble(param[2].str());
 
-    auto symbol = SymbolList[toInt(param[3])];
+    auto symbol = pcbdata.symbolList[toInt(param[3])];
 
     double penWidth = 0;
 
@@ -123,9 +157,8 @@ inline int DrawSymbol(svg::Document &doc, const std::smatch &param)
             using T = std::decay_t<decltype(arg)>;
             if constexpr (std::is_same_v<T, Circle>)
             {
-                doc << svg::Circle(svg::Point(x, y), arg.d, svg::Fill(svg::Color::Green),
-                                   svg::Stroke(penWidth, svg::Color::Green));
-                statistics["Circle"]++;
+                doc << svg::Circle(svg::Point(x, y), arg.d, svg::Fill(PadColor), svg::Stroke(penWidth, PadColor));
+                pcbdata.statistics["Circle"]++;
             }
             else if constexpr (std::is_same_v<T, Rect>)
             {
@@ -139,10 +172,9 @@ inline int DrawSymbol(svg::Document &doc, const std::smatch &param)
                     break;
                 }
 
-                doc << svg::Rectangle(svg::Point(x, y), w, h, svg::Fill(svg::Color::Green),
-                                      svg::Stroke(penWidth, svg::Color::Green));
+                doc << svg::Rectangle(svg::Point(x, y), w, h, svg::Fill(PadColor), svg::Stroke(penWidth, PadColor));
 
-                statistics["Rectangle"]++;
+                pcbdata.statistics["Rectangle"]++;
             }
             else if constexpr (std::is_same_v<T, RoundRect>)
             {
@@ -151,21 +183,21 @@ inline int DrawSymbol(svg::Document &doc, const std::smatch &param)
                 auto w = arg.width;
                 auto h = arg.height;
 
-                doc << svg::RoundRectangle(svg::Point(x, y), w, h, arg.radius, svg::Fill(svg::Color::Green),
-                                           svg::Stroke(penWidth, svg::Color::Green));
-                statistics["RoundRect"]++;
+                doc << svg::RoundRectangle(svg::Point(x, y), w, h, arg.radius, svg::Fill(PadColor),
+                                           svg::Stroke(penWidth, PadColor));
+                pcbdata.statistics["RoundRect"]++;
             }
             else if constexpr (std::is_same_v<T, RoundDonut>)
             {
                 doc << svg::Circle(svg::Point(x, y), arg.od, svg::Fill(svg::Color::Transparent),
-                                   svg::Stroke(penWidth, svg::Color::Green));
+                                   svg::Stroke(penWidth, PadColor));
                 doc << svg::Circle(svg::Point(x, y), arg.id, svg::Fill(svg::Color::Transparent),
-                                   svg::Stroke(penWidth, svg::Color::Green));
-                statistics["RoundDonut"]++;
+                                   svg::Stroke(penWidth, PadColor));
+                pcbdata.statistics["RoundDonut"]++;
             }
             else if constexpr (std::is_same_v<T, Unknown>)
             {
-                statistics["Unknown"]++;
+                pcbdata.statistics["Unknown"]++;
             }
         },
         symbol);
@@ -173,9 +205,9 @@ inline int DrawSymbol(svg::Document &doc, const std::smatch &param)
     return 1;
 }
 
-inline double LineWidth(size_t index)
+inline double LineWidth(size_t index, const pcbdata_t &pcbdata)
 {
-    auto symbol = SymbolList[index];
+    auto symbol = pcbdata.symbolList[index];
     double ret = 0.0;
     std::visit(
         [&](auto &&arg) {
@@ -208,39 +240,39 @@ inline double LineWidth(size_t index)
     return ret;
 }
 
-inline int DrawLine(svg::Document &doc, const std::smatch &param)
+inline int DrawLine(svg::Document &doc, const std::smatch &param, pcbdata_t &pcbdata)
 {
 
-    double penWidth = LineWidth(toNumber<int>(param[5].str()));
+    double penWidth = LineWidth(toNumber<int>(param[5].str()), pcbdata);
 
     auto x1 = inchtomm * toDouble(param[1].str());
     auto y1 = inchtomm * toDouble(param[2].str());
 
-    box.bounds(x1, y1);
+    pcbdata.box.update(x1, y1);
 
     auto x2 = inchtomm * toDouble(param[3].str());
     auto y2 = inchtomm * toDouble(param[4].str());
-    box.bounds(x2, y2);
+    pcbdata.box.update(x2, y2);
 
-    svg::Line line(svg::Point(x1, y1), svg::Point(x2, y2), svg::Stroke(penWidth, svg::Color::Black));
+    svg::Line line(svg::Point(x1, y1), svg::Point(x2, y2), svg::Stroke(penWidth, LineColor));
 
     doc << line;
 
-    statistics["Line"]++;
+    pcbdata.statistics["Line"]++;
     return 1;
 }
 
-inline int DrawArc(svg::Document &doc, const std::smatch &param)
+inline int DrawArc(svg::Document &doc, const std::smatch &param, pcbdata_t &pcbdata)
 {
 
-    double penWidth = LineWidth(toInt(param[7].str()));
+    double penWidth = LineWidth(toInt(param[7].str()), pcbdata);
 
     auto x1 = inchtomm * toDouble(param[1].str());
     auto y1 = inchtomm * toDouble(param[2].str());
     auto x2 = inchtomm * toDouble(param[3].str());
     auto y2 = inchtomm * toDouble(param[4].str());
 
-    box.bounds(x1, y1);
+    pcbdata.box.update(x1, y1);
     auto rx = inchtomm * toDouble(param[5].str()) - x1;
     auto ry = inchtomm * toDouble(param[6].str()) - y1;
 
@@ -248,122 +280,127 @@ inline int DrawArc(svg::Document &doc, const std::smatch &param)
 
     int cw = param[10].str() == "Y" ? 1 : 0;
 
-    doc << svg::Arc(svg::Point(x1, y1), svg::Point(x2, y2), r, cw, svg::Stroke(penWidth, svg::Color::Black));
+    doc << svg::Arc(svg::Point(x1, y1), svg::Point(x2, y2), r, cw, svg::Stroke(penWidth, ArcColor));
 
-    statistics["Arc"]++;
-    return 1;
+    pcbdata.statistics["Arc"]++;
+    return 0;
 }
 
-inline int DrawSegment(svg::Document &doc, const std::smatch &param)
+inline int DrawSegment(svg::Document &doc, const std::smatch &param, pcbdata_t &pcbdata)
 {
-    return 1;
+    return 0;
 }
 
-inline int CreatePolyline(svg::Document &doc, const std::smatch &param)
+inline int CreatePolyline(svg::Document &doc, const std::smatch &param, pcbdata_t &pcbdata)
 {
 
-    if (polyline != nullptr)
-        delete polyline;
-    polyline = new svg::Polyline(svg::Fill(svg::Color::Transparent), svg::Stroke(outLineWidth, svg::Color::Red));
+    if (pcbdata.polyLine != nullptr)
+        delete pcbdata.polyLine;
+    pcbdata.polyLine = new svg::Polyline(svg::Fill(svg::Color::Transparent), svg::Stroke(outLineWidth, SurfaceColor));
 
     auto x1 = inchtomm * toDouble(param[1].str());
     auto y1 = inchtomm * toDouble(param[2].str());
 
-    *polyline << svg::Point(x1, y1);
+    *pcbdata.polyLine << svg::Point(x1, y1);
 
-    lastPolyPoint = svg::Point(x1, y1);
+    pcbdata.lastPolyPoint = svg::Point(x1, y1);
 
-    box.bounds(x1, y1);
-    statistics["Polyline"]++;
+    pcbdata.box.update(x1, y1);
+    pcbdata.statistics["Polyline"]++;
     return 0;
 }
 
-inline int AddPointToPolyline(svg::Document &doc, const std::smatch &param)
+inline int AddPointToPolyline(svg::Document &doc, const std::smatch &param, pcbdata_t &pcbdata)
 {
 
-    if (polyline == nullptr)
+    if (pcbdata.polyLine == nullptr)
     {
-        polyline = new svg::Polyline(svg::Fill(svg::Color::Transparent), svg::Stroke(outLineWidth, svg::Color::Red));
+        pcbdata.polyLine =
+            new svg::Polyline(svg::Fill(svg::Color::Transparent), svg::Stroke(outLineWidth, SurfaceColor));
     }
 
     auto x1 = inchtomm * toDouble(param[1].str());
     auto y1 = inchtomm * toDouble(param[2].str());
 
-    box.bounds(x1, y1);
+    pcbdata.box.update(x1, y1);
 
-    if (polyline != nullptr)
+    if (pcbdata.polyLine != nullptr)
     {
-        *polyline << svg::Point(x1, y1);
+        *pcbdata.polyLine << svg::Point(x1, y1);
     }
-    lastPolyPoint = svg::Point(x1, y1);
+    pcbdata.lastPolyPoint = svg::Point(x1, y1);
 
     return 0;
 }
 
-inline int AddArcToPolyline(svg::Document &doc, const std::smatch &param)
+inline int AddArcToPolyline(svg::Document &doc, const std::smatch &param, pcbdata_t &pcbdata)
 {
 
     auto x1 = inchtomm * toDouble(param[1].str());
     auto y1 = inchtomm * toDouble(param[2].str());
-    box.bounds(x1, y1);
+    pcbdata.box.update(x1, y1);
+
     auto rx = inchtomm * toDouble(param[3].str()) - x1;
     auto ry = inchtomm * toDouble(param[4].str()) - y1;
 
     int sign = 1;
 
     if (rx < 0 || ry < 0)
+    {
         sign = 1;
+    }
     auto r = std::max(std::abs(rx), std::abs(ry));
 
     int cw = param[5].str() == "Y" ? 1 : 0;
 
-    doc << svg::Arc(svg::Point(lastPolyPoint.x, lastPolyPoint.y), svg::Point(x1, y1), sign * r, cw,
-                    svg::Stroke(outLineWidth, svg::Color::Red));
+    doc << svg::Arc(svg::Point(pcbdata.lastPolyPoint.x, pcbdata.lastPolyPoint.y), svg::Point(x1, y1), sign * r, cw,
+                    svg::Stroke(outLineWidth, SurfaceColor));
 
-    lastPolyPoint = svg::Point(x1, y1);
+    pcbdata.lastPolyPoint = svg::Point(x1, y1);
 
-    if (polyline != nullptr)
+    if (pcbdata.polyLine != nullptr)
     {
 
-        doc << *polyline;
-        delete polyline;
-        polyline = nullptr;
+        doc << *pcbdata.polyLine;
+        delete pcbdata.polyLine;
+        pcbdata.polyLine = nullptr;
 
-        polyline = new svg::Polyline(svg::Fill(svg::Color::Transparent), svg::Stroke(outLineWidth, svg::Color::Red));
+        pcbdata.polyLine =
+            new svg::Polyline(svg::Fill(svg::Color::Transparent), svg::Stroke(outLineWidth, SurfaceColor));
 
-        *polyline << svg::Point(x1, y1);
+        *pcbdata.polyLine << svg::Point(x1, y1);
     }
 
     return 0;
 }
 
-inline int AddPolylineToDoc(svg::Document &doc, const std::smatch &param)
+inline int AddPolylineToDoc(svg::Document &doc, const std::smatch &param, pcbdata_t &pcbdata)
 {
-    if (polyline != nullptr)
+    if (pcbdata.polyLine != nullptr)
     {
-        doc << *polyline;
-        delete polyline;
-        polyline = nullptr;
+        doc << *pcbdata.polyLine;
+        delete pcbdata.polyLine;
+        pcbdata.polyLine = nullptr;
     }
     return 0;
 }
 
-inline int SurfaceEnd(svg::Document &doc, const std::smatch &param)
+inline int SurfaceEnd(svg::Document &doc, const std::smatch &param, pcbdata_t &pcbdata)
 {
-    statistics["Surfaces"]++;
+    pcbdata.statistics["Surfaces"]++;
     return 0;
 }
 
-std::vector<std::pair<const std::regex, std::function<int(svg::Document &doc, const std::smatch &)>>> actionTable;
-
-inline std::string pcb2svg(const std::string &filename, BoundingBox &boundbox, svg::Document &doc)
+inline std::string pcb2svg(const std::string &filename, pcbdata_t &pcbdata, svg::Document &doc)
 {
+
+    std::vector<std::pair<const std::regex, std::function<int(svg::Document & doc, const std::smatch &, pcbdata_t &)>>>
+        actionTable;
+
     std::cout << "\n  " << filename << " \n";
-    statistics.clear();
+    pcbdata.statistics.clear();
 
-    box = BoundingBox();
-
-    actionTable.push_back({E, AddSymbol});
+    actionTable.push_back({F, AddSymbol});
     actionTable.push_back({P, DrawSymbol});
     actionTable.push_back({A, DrawArc});
     actionTable.push_back({L, DrawLine});
@@ -387,17 +424,17 @@ inline std::string pcb2svg(const std::string &filename, BoundingBox &boundbox, s
 
     std::string data;
     std::smatch match;
-    int cnt = 0;
+
     while (std::getline(ss, data))
     {
-        cnt++;
+
         for (auto element : actionTable)
         {
 
             if (std::regex_match(data, match, element.first))
             {
 
-                element.second(doc, match);
+                element.second(doc, match, pcbdata);
                 break;
             }
         }
@@ -405,14 +442,6 @@ inline std::string pcb2svg(const std::string &filename, BoundingBox &boundbox, s
 
     doc << svg::elemEnd("g");
 
-    for (auto e : statistics)
-    {
-        std::cout << e.first << " = " << e.second << "\n";
-    }
-
-    std::cout << "-------------------------------------\n";
-
-    boundbox = box;
     return doc.toString();
 }
 } // namespace pcb2svg

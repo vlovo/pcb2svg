@@ -34,7 +34,7 @@ namespace pcb2svg
 {
 
 // Feature symbol names ,e.g   $3 rect13.78x15.748
-static const std::regex E(
+static const std::regex F(
     R"(^\$(\d+)+\s+(r|rect|oval|donut_r)(-?\d+\.?\d*)x?(-?\d+\.?\d*)?x?(r|c)?(-?\d+\.?\d*)?x?(\d{0,4}))");
 
 // define Pad,e.g  P 2.753818897638 0.214251968504 0 P 0 1 ;2=0;ID=535539

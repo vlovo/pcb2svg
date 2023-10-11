@@ -51,25 +51,38 @@ int main(int argc, char **argv)
 
     svg::Document doc = svg::Document("", svg::Layout(svg::Dimensions(), svg::Layout::TopLeft));
 
-    pcb2svg::BoundingBox box;
+    pcb2svg::pcbdata_t pcbdata;
 
     // 1. read the   outline of  pcb board an determine  bounding box .
-    pcb2svg::pcb2svg(profile_file, box, doc);
+    pcb2svg::pcb2svg(profile_file, pcbdata, doc);
+
+    for (auto e : pcbdata.statistics)
+    {
+        std::cout << e.first << " = " << e.second << "\n";
+    }
+
+    std::cout << "-------------------------------------\n";
 
     // 2 .set layout /  viewbox of svg  and read the features file
 
-    auto w = box.x2 - box.x1;
-    auto h = box.y2 - box.y1;
+    auto w = pcbdata.box.x2 - pcbdata.box.x1;
+    auto h = pcbdata.box.y2 - pcbdata.box.y1;
     auto dimensions = svg::Dimensions(w, h);
 
     doc.setLayout(svg::Layout(dimensions, svg::Layout::TopLeft));
-    doc.setViewBox(svg::ViewBox(svg::Dimensions(dimensions), svg::Point(box.x1, -(h + box.y1))));
+    doc.setViewBox(svg::ViewBox(svg::Dimensions(dimensions), svg::Point(pcbdata.box.x1, -(h + pcbdata.box.y1))));
 
-    pcb2svg::pcb2svg(features_file, box, doc);
+    pcb2svg::pcb2svg(features_file, pcbdata, doc);
+
+    for (auto e : pcbdata.statistics)
+    {
+        std::cout << e.first << " = " << e.second << "\n";
+    }
+
+    std::cout << "-------------------------------------\n";
 
     //  3. write svg content to file
     std::ofstream out(output_file);
-
     out << doc.toString();
 
     out.close();
